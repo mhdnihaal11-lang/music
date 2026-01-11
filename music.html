@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apple Music - Lossless Audio</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --apple-red: #fa243c;
+            --bg-black: #000;
+            --card-bg: #1c1c1e;
+            --text-gray: #8e8e93;
+            --glass: rgba(28, 28, 30, 0.85);
+        }
+
+        body {
+            margin: 0; background: var(--bg-black); color: white;
+            font-family: -apple-system, system-ui, sans-serif;
+            display: flex; height: 100vh; overflow: hidden;
+        }
+
+        /* Sidebar - Desktop */
+        .sidebar {
+            width: 260px; background: #000; padding: 30px 20px;
+            border-right: 1px solid #2c2c2e; display: flex; flex-direction: column;
+        }
+
+        @media (max-width: 900px) { .sidebar { display: none; } }
+
+        /* Main View */
+        .main-view { flex: 1; overflow-y: auto; padding-bottom: 150px; }
+
+        .header-search {
+            padding: 20px; position: sticky; top: 0; background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(20px); z-index: 100;
+        }
+
+        .search-bar {
+            background: #1c1c1e; display: flex; align-items: center;
+            padding: 12px 15px; border-radius: 12px; max-width: 600px;
+        }
+
+        .search-bar input {
+            background: transparent; border: none; color: white;
+            width: 100%; margin-left: 10px; outline: none; font-size: 17px;
+        }
+
+        /* Sections (Quick Picks) */
+        .section { padding: 20px 0 0 20px; }
+        .section h2 { font-size: 24px; margin-bottom: 15px; font-weight: 700; }
+
+        .horizontal-scroll {
+            display: flex; overflow-x: auto; gap: 15px; padding-bottom: 10px;
+            scroll-snap-type: x mandatory;
+        }
+        .horizontal-scroll::-webkit-scrollbar { display: none; }
+
+        .quick-pick-card {
+            min-width: 160px; scroll-snap-align: start; cursor: pointer;
+        }
+
+        .quick-pick-card img {
+            width: 160px; height: 160px; border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        }
+
+        /* Floating Mini Player */
+        .mini-player {
+            position: fixed; bottom: 20px; left: 15px; right: 15px;
+            height: 64px; background: var(--glass); backdrop-filter: blur(30px);
+            border-radius: 12px; display: flex; align-items: center;
+            padding: 0 15px; z-index: 500; cursor: pointer;
+        }
+
+        .mini-player img { width: 44px; height: 44px; border-radius: 6px; margin-right: 12px; }
+        .mini-info { flex: 1; overflow: hidden; }
+        .mini-info b { font-size: 15px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .mini-info span { font-size: 13px; color: var(--text-gray); }
+
+        /* Full Screen Player Overlay */
+        #full-player {
+            position: fixed; top: 100%; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, #444, #111);
+            z-index: 2000; transition: top 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            display: flex; flex-direction: column; align-items: center; padding-top: 60px;
+        }
+
+        #full-player.active { top: 0; }
+
+        .close-player { position: absolute; top: 20px; left: 20px; font-size: 24px; opacity: 0.6; }
+
+        .full-art { width: 85%; max-width: 350px; aspect-ratio: 1; border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); margin-bottom: 40px; }
+
+        .full-meta { width: 85%; text-align: left; }
+        .full-meta h1 { font-size: 24px; margin: 0; }
+        .full-meta p { color: #ccc; font-size: 18px; margin: 5px 0; }
+
+        .badges { display: flex; gap: 8px; margin-top: 10px; }
+        .badge { background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #aaa; border: 1px solid rgba(255,255,255,0.2); }
+
+        .player-controls-large { width: 85%; margin-top: 50px; display: flex; justify-content: space-around; align-items: center; font-size: 35px; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div style="color:var(--apple-red); font-size: 28px; margin-bottom: 40px;"><i class="fab fa-apple"></i></div>
+        <div style="font-weight: 700; color: var(--apple-red); margin-bottom: 20px;"><i class="fas fa-play-circle"></i> Listen Now</div>
+        <div style="color: white; margin-bottom: 20px;"><i class="fas fa-th-large"></i> Browse</div>
+        <div style="color: white;"><i class="fas fa-tower-broadcast"></i> Radio</div>
+    </aside>
+
+    <div class="main-view">
+        <div class="header-search">
+            <div class="search-bar">
+                <i class="fas fa-search" style="color:var(--text-gray)"></i>
+                <input type="text" id="search" placeholder="Search for songs..." onkeypress="if(event.key === 'Enter') handleSearch()">
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Quick Picks</h2>
+            <div class="horizontal-scroll" id="quick-picks-grid">
+                </div>
+        </div>
+
+        <div class="section">
+            <h2>Recently Played</h2>
+            <div class="horizontal-scroll" id="recent-grid"></div>
+        </div>
+    </div>
+
+    <div class="mini-player" onclick="toggleFullPlayer(true)">
+        <img id="m-img" src="https://via.placeholder.com/44">
+        <div class="mini-info">
+            <b id="m-title">Not Playing</b>
+            <span id="m-artist">Search to begin</span>
+        </div>
+        <div style="font-size: 22px; display:flex; gap:25px; margin-left:15px;">
+            <i class="fas fa-play" onclick="event.stopPropagation(); pausePlay();"></i>
+            <i class="fas fa-forward"></i>
+        </div>
+    </div>
+
+    <div id="full-player">
+        <i class="fas fa-chevron-down close-player" onclick="toggleFullPlayer(false)"></i>
+        <img class="full-art" id="f-img" src="">
+        <div class="full-meta">
+            <div style="display:flex; justify-content: space-between; align-items: center;">
+                <h1 id="f-title">Song Title</h1>
+                <i class="far fa-star"></i>
+            </div>
+            <p id="f-artist">Artist Name</p>
+            <div class="badges">
+                <div class="badge">Lossless</div>
+                <div class="badge">Dolby Atmos</div>
+            </div>
+        </div>
+        
+        <div style="width: 85%; margin-top: 30px;">
+            <input type="range" style="width:100%; accent-color: white;">
+        </div>
+
+        <div class="player-controls-large">
+            <i class="fas fa-backward"></i>
+            <i class="fas fa-pause"></i>
+            <i class="fas fa-forward"></i>
+        </div>
+    </div>
+
+    <div id="audio-target"></div>
+
+    <script>
+        function handleSearch() {
+            const query = document.getElementById('search').value;
+            const quickGrid = document.getElementById('quick-picks-grid');
+            if(!query) return;
+
+            fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=15`)
+                .then(res => res.json())
+                .then(data => {
+                    quickGrid.innerHTML = "";
+                    data.results.forEach(song => {
+                        const img = song.artworkUrl100.replace('100x100bb', '600x600bb');
+                        const div = document.createElement('div');
+                        div.className = 'quick-pick-card';
+                        div.innerHTML = `<img src="${img}"><div style="font-size:13px; margin-top:8px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${song.trackName}</div>`;
+                        div.onclick = () => playSong(song.trackName, song.artistName, img, song.previewUrl);
+                        quickGrid.appendChild(div);
+                    });
+                });
+        }
+
+        function playSong(title, artist, img, url) {
+            document.getElementById('m-title').innerText = title;
+            document.getElementById('m-artist').innerText = artist;
+            document.getElementById('m-img').src = img;
+            
+            document.getElementById('f-title').innerText = title;
+            document.getElementById('f-artist').innerText = artist;
+            document.getElementById('f-img').src = img;
+
+            document.getElementById('audio-target').innerHTML = `<audio autoplay src="${url}"></audio>`;
+        }
+
+        function toggleFullPlayer(show) {
+            const player = document.getElementById('full-player');
+            if(show) player.classList.add('active');
+            else player.classList.remove('active');
+        }
+    </script>
+</body>
+</html>
