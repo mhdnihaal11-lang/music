@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apple Music - Full & Responsive</title>
+    <title>Apple Music - SoundCloud Edition</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -14,6 +14,7 @@
         <nav>
             <div class="nav-item active"><i class="fas fa-play-circle"></i> <span>Listen Now</span></div>
             <div class="nav-item"><i class="fas fa-th-large"></i> <span>Browse</span></div>
+            <div class="nav-item"><i class="fas fa-tower-broadcast"></i> <span>Radio</span></div>
         </nav>
     </aside>
 
@@ -21,13 +22,14 @@
         <header class="header-search">
             <div class="search-bar">
                 <i class="fas fa-search"></i>
-                <input type="text" id="search" placeholder="Search for songs..." onkeypress="if(event.key === 'Enter') handleSearch()">
+                <input type="text" id="search" placeholder="Search songs..." onkeypress="if(event.key === 'Enter') handleSearch()">
             </div>
         </header>
 
         <section class="section">
-            <h2>Quick Picks (Trending)</h2>
-            <div class="horizontal-scroll" id="quick-picks-grid"></div>
+            <h2 id="view-title">Listen Now</h2>
+            <div class="horizontal-scroll" id="quick-picks-grid">
+                </div>
         </section>
 
         <section class="section">
@@ -40,7 +42,7 @@
         <img id="m-img" src="https://via.placeholder.com/44">
         <div class="mini-info">
             <b id="m-title">Not Playing</b>
-            <span id="m-artist">Search to begin</span>
+            <span id="m-artist">Search for a track</span>
         </div>
         <div class="mini-controls">
             <i class="fas fa-play" id="m-play-btn"></i>
@@ -51,17 +53,22 @@
     <div id="full-player">
         <i class="fas fa-chevron-down close-player" id="close-player"></i>
         <img class="full-art" id="f-img" src="">
+        
         <div class="full-meta">
             <div class="title-row">
                 <h1 id="f-title">Song Title</h1>
                 <i class="far fa-star"></i>
             </div>
             <p id="f-artist">Artist Name</p>
+            
             <div class="badges">
                 <div class="badge">Lossless</div>
                 <div class="badge">Dolby Atmos</div>
             </div>
-            <button id="dl-btn" class="download-btn"><i class="fas fa-download"></i> Download Full Song</button>
+            
+            <button id="dl-btn" class="download-btn">
+                <i class="fas fa-download"></i> Download Full Song
+            </button>
         </div>
         
         <div class="progress-container">
@@ -79,6 +86,13 @@
         </div>
     </div>
 
+    <iframe id="sc-player" 
+            style="display:none" 
+            src="https://w.soundcloud.com/player/?url=https://api.soundcloud.com/tracks/293&auto_play=false" 
+            allow="autoplay">
+    </iframe>
+
+    <script src="https://w.soundcloud.com/player/api.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
