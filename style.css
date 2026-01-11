@@ -33,8 +33,20 @@ body {
 .mini-info { flex: 1; overflow: hidden; }
 .mini-info b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-#full-player { position: fixed; top: 100%; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, #444, #000); z-index: 2000; transition: top 0.4s cubic-bezier(0.25, 1, 0.5, 1); display: flex; flex-direction: column; align-items: center; padding-top: 60px; }
-#full-player.active { top: 0; }
+#full-player {
+    position: fixed;
+    top: 100%; /* Hidden at bottom */
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    transition: 0.5s ease-in-out; /* Smooth slide up */
+    z-index: 1000;
+}
+
+#full-player.active {
+    top: 0; /* Slides into view */
+}
 .full-art { width: 85%; max-width: 350px; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); margin-bottom: 30px; }
 .full-meta { width: 85%; }
 .title-row { display: flex; justify-content: space-between; align-items: center; }
